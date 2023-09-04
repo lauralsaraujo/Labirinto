@@ -89,9 +89,9 @@ def dfs(lab: Labirinto) :
         no_atual: No[Coordenada] = proximo_passo.desempilhar()
         localizacao_atual: Coordenada = no_atual.localizacao
         if lab.chegou(localizacao_atual):
-            Vetor = no_atual.localizacao
+            Vetor.append(no_atual.localizacao)
             while no_atual.pai != None:
-                Vetor += no_atual.pai.localizacao
+                Vetor.append(no_atual.pai.localizacao)
             
         for proximo_no in lab.sucessores(localizacao_atual):
             if proximo_no in nos_ja_acessados:
@@ -107,6 +107,7 @@ if __name__ == "__main__":
     print(lab)
     #print(lab.largada)
     oi = dfs(lab)
-    for i in oi:
-        c:  Coordenada = oi
-        print(c)
+    print (oi)
+    #for i in oi:
+        #c:  Coordenada = oi
+        #print(c)
