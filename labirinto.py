@@ -1,113 +1,121 @@
-from typing import List, NamedTuple, Optional, Set
-import random
-from enum import Enum
+from queue import deque
 
-class Coordenada(NamedTuple) :
-    linha : int
-    coluna : int
-    
-    def __str__(self):
-        tela: str = ""
-        for i in range(0, 2):
-            tela += str(self.linha) + "," + str(self.coluna) + "\n"
-        return tela
-
-class Tipo(str, Enum):
-    VAZIO = " "
-    PAREDE = "X"
-    LARGADA = "I"
-    CHEGADA = "F"
+class No:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.pai = None
 
 class Labirinto:
-    def __init__(self, linhas : int = 10, colunas : int = 10, sparseness : float = 0.2, largada : Coordenada = Coordenada(random.randint(0,10),random.randint(0,10)), chegada : Coordenada = Coordenada(random.randint(0,10),random.randint(0,10)) ) :
-        self.linhas: int = linhas 
-        self.colunas: int = colunas
-        self.largada: int = largada 
-        self.chegada: int = chegada 
-        self.grade:  List[List[Tipo]] = [[Tipo.VAZIO for c in range(colunas)] for r in range(linhas)]
-        self.gerador_de_labirinto(linhas, colunas, sparseness)
-        self.grade[largada.linha][largada.coluna] = Tipo.LARGADA  
-        self.grade[chegada.linha][chegada.coluna] = Tipo.CHEGADA
+    def __init__(self, labirinto):
+        self.labirinto = labirinto
+        self.linhas = len(labirinto)
+        self.colunas = len(labirinto[0])
+        self.no_inicio = self.encontrar_no(2)
+        self.no_fim = self.encontrar_no(3)
 
-    def gerador_de_labirinto(self, linhas: int, colunas: int, sparseness: float):
-        for linha in range(linhas):
-            for coluna in range(colunas):
-                if random.uniform(0, 1.0) < sparseness:
-                    self.grade[linha][coluna] = Tipo.PAREDE
+    def __getitem__(self, index):
+        return self.labirinto[index]
 
-    def __str__(self) -> str:
-        tela: str = ""
-        for linha in self.grade:
-            tela += "".join([c.value for c in linha]) + "\n"
-        return tela
-    
-    def chegou(self, coordenada: Coordenada) :
-        return coordenada == self.chegada
+    def encontrar_no(self, valor):
+        for x in range(self.linhas):
+            for y in range(self.colunas):
+                if self.labirinto[x][y] == valor:
+                    return No(x, y)
+        return None
 
-    def sucessores(self, coordenada: Coordenada) :
-        possiveis_sucessores: List[Coordenada] = []
-        if coordenada.linha + 1 < self.colunas and self.grade[coordenada.coluna + 1][coordenada.coluna] != Tipo.PAREDE:
-            possiveis_sucessores.append(Coordenada(coordenada.coluna + 1, coordenada.coluna))
-        if coordenada.coluna - 1 >= 0 and self.grade[coordenada.coluna - 1][coordenada.coluna] != Tipo.PAREDE:
-            possiveis_sucessores.append(Coordenada(coordenada.coluna - 1, coordenada.coluna))
-        if coordenada.coluna + 1 < self.colunas and self.grade[coordenada.coluna][coordenada.coluna + 1] != Tipo.PAREDE:
-            possiveis_sucessores.append(Coordenada(coordenada.coluna, coordenada.coluna + 1))
-        if coordenada.coluna - 1 >= 0 and self.grade[coordenada.coluna][coordenada.coluna - 1] != Tipo.PAREDE:
-            possiveis_sucessores.append(Coordenada(coordenada.coluna, coordenada.coluna - 1))
-        return possiveis_sucessores
-    
-class No:
-    def __init__(self, localizacao: Coordenada, pai) :
-        self.localizacao: Coordenada = localizacao
-        self.pai: Optional[No] = pai
+    def chegou_no_fim(self, x, y):
+        return 0 <= x < self.linhas and 0 <= y < self.colunas and self.labirinto[x][y] != 0
 
-class Pilha(No):
-    def __init__(self) :
-        self.pilha: List[No] = []
+    def sucessores(self, no):
+        x, y = no.x, no.y
+        passos_possiveis = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+        passos_validos = []
 
-    def pilha_vazia(self) :
-        if len(self.pilha) > 0:
-            return False
-        return True  
+        for passo_x, passo_y in passos_possiveis:
+            if self.chegou_no_fim(passo_x, passo_y):
+                passos_validos.append(No(passo_x, passo_y))
 
-    def empilhar(self, objeto: No) :
-        self.pilha.append(objeto)
+        return passos_validos
 
-    def desempilhar(self) :
-        return self.pilha.pop()  
+    def DFS(self):
+        pilha = []
+        visitados = set()
 
-    def __repr__(self):
-        return repr(self.pilha)
+        pilha.append(self.no_inicio)
+        visitados.add((self.no_inicio.x, self.no_inicio.y))
 
-def dfs(lab: Labirinto) :
- 
-    Vetor: List[Coordenada] =[]
-    proximo_passo: Pilha[No[Coordenada]] =   Pilha()
-    proximo_passo.empilhar(No(lab.largada, None))
-    nos_ja_acessados: Set[No] = {lab.largada}
-    while not proximo_passo.pilha_vazia() :
-        no_atual: No[Coordenada] = proximo_passo.desempilhar()
-        localizacao_atual: Coordenada = no_atual.localizacao
-        if lab.chegou(localizacao_atual):
-            Vetor.append(no_atual.localizacao)
-            while no_atual.pai != None:
-                Vetor.append(no_atual.pai.localizacao)
-            
-        for proximo_no in lab.sucessores(localizacao_atual):
-            if proximo_no in nos_ja_acessados:
-                continue
-            nos_ja_acessados.add(proximo_no)
-            proximo_passo.empilhar(No(proximo_no, no_atual))
-    return Vetor
+        while pilha:
+            no_atual = pilha.pop()
 
+            if no_atual.x == self.no_fim.x and no_atual.y == self.no_fim.y:
+                caminho = []
+                while no_atual:
+                    caminho.insert(0, (no_atual.x, no_atual.y))
+                    no_atual = no_atual.pai
+                return caminho
+
+            for no_vizinho in self.sucessores(no_atual):
+                if (no_vizinho.x, no_vizinho.y) not in visitados:
+                    no_vizinho.pai = no_atual
+                    pilha.append(no_vizinho)
+                    visitados.add((no_vizinho.x, no_vizinho.y))
+
+    def BFS(self):
+        fila = deque()
+        visitados = set()
+
+        fila.append(self.no_inicio)
+        visitados.add((self.no_inicio.x, self.no_inicio.y))
+
+        while fila:
+            no_atual = fila.popleft()
+
+            if no_atual.x == self.no_fim.x and no_atual.y == self.no_fim.y:
+                caminho = []
+                while no_atual:
+                    caminho.insert(0, (no_atual.x, no_atual.y))
+                    no_atual = no_atual.pai
+                return caminho
+
+            for no_vizinho in self.sucessores(no_atual):
+                if (no_vizinho.x, no_vizinho.y) not in visitados:
+                    no_vizinho.pai = no_atual
+                    fila.append(no_vizinho)
+                    visitados.add((no_vizinho.x, no_vizinho.y))
+
+    def modificar_labirinto_com_caminho(self, caminho):
+        for x, y in caminho:
+            if self.labirinto[x][y] == 1:
+                self.labirinto[x][y] = 7
+
+    def imprimir_labirinto(self):
+        for linha in self.labirinto:
+            print(" ".join(map(str, linha)))
 
 if __name__ == "__main__":
-    lab: Labirinto = Labirinto()
-    saida : str = ""
-    print(lab)
-    #print(lab.largada)
-    oi = dfs(lab)
-    print (oi)
-    #for i in oi:
-        #c:  Coordenada = oi
-        #print(c)
+    matriz = [
+        [2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+        [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 1, 1, 3],
+        [0, 0, 1, 1, 1, 1, 1, 1, 0, 0]
+    ]
+
+    labirinto = Labirinto(matriz)
+    caminho = labirinto.DFS()
+    labirinto.imprimir_labirinto()
+    print("\n\n\n")
+    if caminho:
+        labirinto.modificar_labirinto_com_caminho(caminho)
+        labirinto.imprimir_labirinto()
+        print("\nCaminho encontrado:")
+        for x, y in caminho:
+            print(f"({x}, {y})")
+    else:
+        print("Nenhum caminho encontrado")
