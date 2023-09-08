@@ -93,29 +93,38 @@ class Labirinto:
         for linha in self.labirinto:
             print(" ".join(map(str, linha)))
 
+def read_labirinto_do_arquivo_txt(arquivo_txt):
+    with open(arquivo_txt, 'r') as arquivo:
+        lines = arquivo.readlines()
+
+    matrix = [list(map(int, line.strip().split())) for line in lines]
+
+    return matrix
+
 if __name__ == "__main__":
-    matriz = [
-        [2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-        [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
-        [0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
-        [0, 0, 1, 1, 0, 0, 0, 1, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 1, 1, 3],
-        [0, 0, 1, 1, 1, 1, 1, 1, 0, 0]
-    ]
+
+    print("Escolha o labirinto (0-3):")
+    numero_do_arquivo = input()
+    arquivo_txt = 'labirintos/lab0' + str(numero_do_arquivo) +'.txt' 
+    matriz = read_labirinto_do_arquivo_txt(arquivo_txt)
 
     labirinto = Labirinto(matriz)
-    caminho = labirinto.DFS()
+    print('\nQual método deseja usar? Digite 1 para DFS e 2 para BFS')
+    escolha =input()
+    if escolha == 1:
+        caminho = labirinto.DFS()
+    else:
+        caminho = labirinto.BFS()
+
     labirinto.imprimir_labirinto()
-    print("\n\n\n")
+    print("\n\n")
     if caminho:
         labirinto.modificar_labirinto_com_caminho(caminho)
         labirinto.imprimir_labirinto()
-        print("\nCaminho encontrado:")
+        coordenadas_caminho = "Caminho encontrado: "
         for x, y in caminho:
-            print(f"({x}, {y})")
+            coordenadas_caminho += f"({x}, {y}) -> "
+        coordenadas_caminho = coordenadas_caminho[:-4]
+        print("\n", coordenadas_caminho)
     else:
         print("Nenhum caminho encontrado")
