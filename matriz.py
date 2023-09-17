@@ -1,5 +1,6 @@
 import time
 import pygame
+
 def read_labirinto_do_arquivo_txt(arquivo_txt):
     with open(arquivo_txt, 'r') as arquivo:
         lines = arquivo.readlines()
@@ -44,16 +45,16 @@ def visualizeMatrix(mazematrix,gridDisplay):
             if (column == 0):
                createLine(35,y,35,y+35,(0,0,0),gridDisplay)
         if (mazematrix[row][column]) == 2:
-            #for j in range (column*35,(column*35)+35,5):
-                #for i in range ((column+1)*35,((column+1)*35)+35,5):
-                    #if ((i+j)%2 != 0):
-                       #createSquare(i,j,5,5,(255,0,0),gridDisplay)
-            createSquare(row+35,column,35,35,(255,0,0),gridDisplay)
+            for j in range (row*35,(row*35)+35,5):
+                for i in range ((column+1)*35,((column+1)*35)+35,5):
+                    if ((i+j)%2 != 0):
+                       createSquare(i,j,5,5,(227,86,131),gridDisplay)
+            #createSquare(row+35,column,35,35,(255,0,0),gridDisplay)
         if (mazematrix[row][column]) == 3:
-             #for j in range (column*35,(column*35)+35,5):
-                #for i in range ((row+1)*35,((row+1)*35)+35,5):
-                    #if ((i+j)%2 != 0):
-            createSquare(x,y,35,35,(0,255,0),gridDisplay)
+             for j in range (row*35,(row*35)+35,5):
+                for i in range ((column+1)*35,((column+1)*35)+35,5):
+                    if ((i+j)%2 != 0):
+                        createSquare(i,j,5,5,(110,191,145),gridDisplay)
         x += 35
     y += 35
 
@@ -72,7 +73,7 @@ def visualizeShape(mazematrix,gridDisplay):
 def updatePosition(x,y,screen1):
    if(y==0 and x==0):
       return
-   createplayer(((y)+1)*(35)+17,((x))*(35)+17,(0,0,255),screen1)
+   createplayer(((y)+1)*(35)+17,((x))*(35)+17,(50,177,204),screen1)
    pygame.display.update()
    time.sleep(0.5)
    createSquare(((y)+1)*(35)+1,((x)*35) +1,30,30,(255,255,255),screen1)
